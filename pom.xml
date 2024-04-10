@@ -16,6 +16,17 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+	<repositories>
+    <repository>
+      <id>besu</id>
+      <url>https://hyperledger.jfrog.io/artifactory/besu-maven/</url>
+    </repository>
+
+    <repository>
+      <id>mydependencies</id>
+      <url>file:///${project.basedir}/../dependencies/</url>
+    </repository>
+  </repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -33,6 +44,28 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>core</artifactId>
+			<version>4.11.2</version> <!-- Use the latest version -->
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.hyperledger.besu/evm -->
+		<dependency>
+			<groupId>org.hyperledger.besu</groupId>
+			<artifactId>evm</artifactId>
+			<version>24.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hyperledger.besu</groupId>
+			<artifactId>besu-datatypes</artifactId>
+			<version>23.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>tech.pegasys</groupId>
+			<artifactId>jc-kzg-4844</artifactId>
+			<version>0.4.0</version>
+      </dependency>
 	</dependencies>
 
 	<build>
