@@ -33,11 +33,16 @@ public class TransactionController {
     private static final BigInteger GAS_PRICE = BigInteger.valueOf(20_000_000_000L);
     private static final String privateKey = "0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63";
 
-    private Web3j web3j;
+    private final Web3j web3j;
+    private final Credentials credentials;
+    private final StaticGasProvider gasProvider;
+
 
     @Autowired
     public TransactionController() {
-        this.web3j = Web3j.build(new HttpService("http://localhost:8545"));  // Ganache RPC server
+        this.web3j = Web3j.build(new HttpService());
+        this.credentials = Credentials.create(privateKey);  
+        this.gasProvider = new StaticGasProvider(GAS_PRICE, GAS_LIMIT);  
     }
 
     @PostMapping
@@ -59,13 +64,12 @@ public class TransactionController {
 
     @PostMapping("/deploy")
     public ResponseEntity<String> deployContract() {
-        // Connect to local Ethereum node
         try {
-            String initialValue = "Hello, World!";  // replace with your actual initial value
+            String initialValue = "Hello, World!";
             HelloWorld contract = HelloWorld.deploy(
                 this.web3j,
-                Credentials.create(privateKey),
-                new StaticGasProvider(GAS_PRICE, GAS_LIMIT),
+                this.credentials,
+                this.gasProvider,
                 initialValue  // constructor argument
             ).send();
 
@@ -80,11 +84,8 @@ public class TransactionController {
     @PostMapping("/contract-execution")
     public ResponseEntity<String> executeContract(@RequestBody Transaction transaction) {
         try {
-            // Create credentials from private key
-            Credentials credentials = Credentials.create(privateKey);
-
             // Get the account address
-            String accountAddress = credentials.getAddress();
+            String accountAddress = this.credentials.getAddress();
             // Get the next available nonce
             EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
                 accountAddress,
@@ -102,7 +103,7 @@ public class TransactionController {
                 transaction.getBytecode()
             );
             // Sign the raw transaction
-            byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+            byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, this.credentials);
             String hexValue = Numeric.toHexString(signedMessage);
 
             // Send the transaction
