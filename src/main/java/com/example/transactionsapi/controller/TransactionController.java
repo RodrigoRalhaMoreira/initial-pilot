@@ -78,18 +78,10 @@ public class TransactionController {
                 this.gasProvider,
                 initialValue  // constructor argument
             ).send();
-    
-            // Update the message
-            TransactionReceipt receipt = contract.update("Updated message").send();
-            if (!receipt.isStatusOK()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating contract: Transaction failed with status " + receipt.getStatus());
-            }
-    
-            // Read the updated message
-            String updatedMessage = contract.message().send();
-    
-            return ResponseEntity.ok("Contract deployed and message updated. Updated message: " + updatedMessage);
-    
+
+            String contractAddress = contract.getContractAddress();
+            return ResponseEntity.ok(contractAddress);
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deploying contract: " + e.getMessage());
         }
@@ -101,7 +93,6 @@ public class TransactionController {
             // Get the account address
             String accountAddress = this.credentials.getAddress();
 
-            System.out.println("Account address: " + accountAddress);
             // Get the next available nonce
             EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
                 accountAddress,
@@ -114,6 +105,7 @@ public class TransactionController {
 
             // Encode the constructor parameters
             String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(constructorParam));
+
             // Create and sign a raw transaction
             RawTransaction rawTransaction = RawTransaction.createContractTransaction(
                 nonce,
@@ -122,6 +114,7 @@ public class TransactionController {
                 BigInteger.ZERO,  // value sent with the transaction
                 transaction.getBytecode() + encodedConstructor
             );
+
             // Sign the raw transaction
             byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, this.credentials);
             String hexValue = Numeric.toHexString(signedMessage);
@@ -150,16 +143,10 @@ public class TransactionController {
                 // Wait for a while before trying again
                 Thread.sleep(1000);
             }
-            // Print the transaction receipt
-            System.out.println(transactionReceiptOptional.toString());
-            if (!transactionReceiptOptional.isPresent()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error executing contract: Transaction receipt not generated");
-            }
 
             TransactionReceipt transactionReceipt = transactionReceiptOptional.get();
 
             String contractAddress = transactionReceipt.getContractAddress();
-            System.out.println("Contract address: " + contractAddress);
 
             // Load the contract
             HelloWorld contract = HelloWorld.load(
@@ -169,10 +156,6 @@ public class TransactionController {
                 this.gasProvider
             );
 
-            System.out.println("Contract loaded");
-            String message = contract.message().send();
-            System.out.println(message);
-            System.out.println("Contract message read");
             // Update the message
             TransactionReceipt receipt = contract.update("Changed variable in the smart contract!").send();
             if (!receipt.isStatusOK()) {
