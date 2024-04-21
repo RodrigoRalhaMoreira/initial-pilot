@@ -1,25 +1,42 @@
 package com.example.transactionsapi.model;
 
+import org.web3j.abi.datatypes.Address;
+import org.web3j.tx.Contract;
+
 public class Transaction {
     private String type;
     private double amount;
     private String bytecode;
+    private Address sender;
+    private Contract smartContract;
 
     public Transaction() {
-        // Needed for JSON deserialization
     }
 
     public Transaction(String type, double amount) {
         this.type = type;
         this.amount = amount;
         this.bytecode = "Default bytecode";
+        this.sender = null;
+        this.smartContract = null;
     }
 
     public Transaction(String type, double amount, String bytecode) {
         this.type = type;
         this.amount = amount;
         this.bytecode = bytecode;
+        this.sender = null;
+        this.smartContract = null;
     }
+
+    public Transaction(String type, double amount, String bytecode, Address sender) {
+        this.type = type;
+        this.amount = amount;
+        this.bytecode = bytecode;
+        this.sender = sender;
+        this.smartContract = null;
+    }
+
 
     // Getters and setters
     public String getType() {
@@ -44,5 +61,21 @@ public class Transaction {
 
     public void setBytecode(String bytecode) {
         this.bytecode = bytecode;
+    }
+
+    public Address getSender() {
+        return sender;
+    }
+
+    public void setSender(Address sender) {
+        this.sender = sender;
+    }
+
+    public Contract getSmartContract() {
+        return smartContract;
+    }
+
+    public void setSmartContract(Contract smartContract) {
+        this.smartContract = smartContract;
     }
 }

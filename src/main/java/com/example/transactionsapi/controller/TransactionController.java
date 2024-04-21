@@ -27,12 +27,13 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Numeric;
 
+import com.example.transactionsapi.client.TransactionService;
 import com.example.transactionsapi.contracts.HelloWorld;
 import com.example.transactionsapi.model.Transaction;
 
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/api")
 public class TransactionController {
 
     private static final BigInteger GAS_LIMIT = BigInteger.valueOf(6_000_000);
@@ -42,13 +43,15 @@ public class TransactionController {
     private final Web3j web3j;
     private final Credentials credentials;
     private final StaticGasProvider gasProvider;
+    private final TransactionService transactionService;
 
 
     @Autowired
-    public TransactionController() {
+    public TransactionController(TransactionService transactionService) {
         this.web3j = Web3j.build(new HttpService());
         this.credentials = Credentials.create(privateKey);  
         this.gasProvider = new StaticGasProvider(GAS_PRICE, GAS_LIMIT);  
+        this.transactionService = transactionService;
     }
 
     @PostMapping
@@ -87,23 +90,35 @@ public class TransactionController {
         }
     }
 
+    // what about the receiver of the transaction?
+    // client deploys smart contract and sends to server endpoint
+    // client install smart contract
+    // execute this operation and verify using the smart contract, don't accept the transaction if the age of the user is less than 18 (example)
+
+    //next step
+    //associate the proof with the transaction amount
+    //how to execute the proof in the context of this smart contracts
+    // a -> tx -> b (signed with a digital signature without revealing the public key, colocar prova com zkSNARK colocar dentro da prova validade signature ) get_validity_of_identifier (a partir da chave publica consigo dizer se a assinatura é valida ou não) 
     @PostMapping("/contract-execution")
     public ResponseEntity<String> executeContract(@RequestBody Transaction transaction) {
-        try {
-            // Get the account address
-            String accountAddress = this.credentials.getAddress();
+        
+        if (!validateTransactionFields(transaction)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid transaction fields.");
+        }
+        
+        // deploy smart contract and tell server to execute it
 
+        try {
             // Get the next available nonce
             EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
-                accountAddress,
+                transaction.getSender().getValue(),
                 DefaultBlockParameterName.LATEST
             ).sendAsync().get();
         
             BigInteger nonce = ethGetTransactionCount.getTransactionCount();
             
-            Utf8String constructorParam = new Utf8String("Hello, World!");
-
             // Encode the constructor parameters
+            Utf8String constructorParam = new Utf8String("Hello, World!");
             String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(constructorParam));
 
             // Create and sign a raw transaction
@@ -155,21 +170,32 @@ public class TransactionController {
                 this.credentials, 
                 this.gasProvider
             );
-
-            // Update the message
-            TransactionReceipt receipt = contract.update("Changed variable in the smart contract!").send();
-            if (!receipt.isStatusOK()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating contract: Transaction failed with status " + receipt.getStatus());
-            }
-    
-            // Read the updated message
-            String updatedMessage = contract.message().send();
-    
-            return ResponseEntity.ok("Contract deployed and message updated. Updated message: " + updatedMessage);
-    
+            
+            transaction.setSmartContract(contract);
+            return transactionService.executeContract(transaction);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error executing contract: " + e.getMessage());
+        }        
+    }
+
+    private boolean validateTransactionFields(Transaction transaction) {
+        if (transaction.getType() == null || transaction.getType().isEmpty()) {
+            return false;
         }
+    
+        if (transaction.getAmount() <= 0) {
+            return false;
+        }
+    
+        if (transaction.getBytecode() == null || transaction.getBytecode().isEmpty()) {
+            return false;
+        }
+    
+        if (transaction.getSender() == null) {
+            return false;
+        }
+    
+        return true;
     }
 
 }
