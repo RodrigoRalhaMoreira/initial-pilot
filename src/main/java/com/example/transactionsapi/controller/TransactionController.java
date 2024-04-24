@@ -3,7 +3,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.RawTransaction;
@@ -106,8 +109,6 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid transaction fields.");
         }
         
-        // deploy smart contract and tell server to execute it
-
         try {
             // Get the next available nonce
             EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
@@ -117,9 +118,16 @@ public class TransactionController {
         
             BigInteger nonce = ethGetTransactionCount.getTransactionCount();
             
+            // Split the parameters string into an array of parameters
+            String[] params = transaction.getSmartContractParams().split(",");
+
+            // Convert the array of parameters to a list of Utf8String
+            List<Type> constructorParams = Arrays.stream(params)
+                .map(Utf8String::new)
+                .collect(Collectors.toList());
+
             // Encode the constructor parameters
-            Utf8String constructorParam = new Utf8String("Hello, World!");
-            String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.asList(constructorParam));
+            String encodedConstructor = FunctionEncoder.encodeConstructor(constructorParams);
 
             // Create and sign a raw transaction
             RawTransaction rawTransaction = RawTransaction.createContractTransaction(

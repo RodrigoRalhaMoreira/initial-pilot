@@ -9,6 +9,7 @@ public class Transaction {
     private String bytecode;
     private Address sender;
     private Contract smartContract;
+    private String smartContractParams;
 
     public Transaction() {
     }
@@ -19,6 +20,7 @@ public class Transaction {
         this.bytecode = "Default bytecode";
         this.sender = null;
         this.smartContract = null;
+        this.smartContractParams = "";
     }
 
     public Transaction(String type, double amount, String bytecode) {
@@ -27,14 +29,16 @@ public class Transaction {
         this.bytecode = bytecode;
         this.sender = null;
         this.smartContract = null;
+        this.smartContractParams = "";
     }
 
-    public Transaction(String type, double amount, String bytecode, Address sender) {
+    public Transaction(String type, double amount, String bytecode, String smartContractParams, Address sender) {
         this.type = type;
         this.amount = amount;
         this.bytecode = bytecode;
         this.sender = sender;
         this.smartContract = null;
+        this.smartContractParams = smartContractParams;
     }
 
 
@@ -77,5 +81,13 @@ public class Transaction {
 
     public void setSmartContract(Contract smartContract) {
         this.smartContract = smartContract;
+    }
+
+    public String getSmartContractParams() {
+        return smartContractParams;
+    }
+
+    public void setSmartContractParams(String smartContractParams) {
+        this.smartContractParams = smartContractParams;
     }
 }
