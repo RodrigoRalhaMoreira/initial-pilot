@@ -13,7 +13,7 @@ public class ZokratesService {
     public void compileCircuit(String circuitFilePath) {
         try {
             // Start the Docker container
-            String[] startCommand = {"docker", "run", "-d", "--name", "zokrates_container", "zokrates/zokrates:0.5.0", "tail", "-f", "/dev/null"};
+            String[] startCommand = {"docker", "run", "-d", "--name", "zokrates_container", "zokrates/zokrates", "tail", "-f", "/dev/null"};
             new ProcessBuilder(startCommand).start().waitFor();
 
             // Copy the Zokrates file into the running Docker container
@@ -21,7 +21,7 @@ public class ZokratesService {
             new ProcessBuilder(copyCommand).start().waitFor();
 
             // Execute the Zokrates compile command inside the Docker container
-            String[] compileCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "cd /home/zokrates && ~/zokrates compile -i example.zok"};
+            String[] compileCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates compile -i example.zok"};
             Process process = new ProcessBuilder(compileCommand).start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
