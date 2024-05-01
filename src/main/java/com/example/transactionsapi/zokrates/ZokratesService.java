@@ -12,27 +12,34 @@ public class ZokratesService {
     // Method to compile the circuit
     public void compileCircuit(String circuitFilePath) {
         try {
-            // Command to run Zokrates compiler inside Docker container
-            String[] command = {"docker", "run", "--rm", "-v", circuitFilePath + ":/zokrates/code", "zokrates/zokrates", "compile", "-i", "/zokrates/code"};
+            // Start the Docker container
+            String[] startCommand = {"docker", "run", "-d", "--name", "zokrates_container", "zokrates/zokrates:0.5.0", "tail", "-f", "/dev/null"};
+            new ProcessBuilder(startCommand).start().waitFor();
 
-            // Execute the command
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            Process process = processBuilder.start();
+            // Copy the Zokrates file into the running Docker container
+            String[] copyCommand = {"docker", "cp", circuitFilePath, "zokrates_container:/home/zokrates/example.zok"};
+            new ProcessBuilder(copyCommand).start().waitFor();
 
-            // Read output from Zokrates compiler
+            // Execute the Zokrates compile command inside the Docker container
+            String[] compileCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "cd /home/zokrates && ~/zokrates compile -i example.zok"};
+            Process process = new ProcessBuilder(compileCommand).start();
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
 
-            // Wait for the process to complete
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 System.out.println("Zokrates compilation successful");
             } else {
                 System.out.println("Zokrates compilation failed");
             }
+
+            // Stop and remove the Docker container
+            String[] stopCommand = {"docker", "rm", "-f", "zokrates_container"};
+            new ProcessBuilder(stopCommand).start().waitFor();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
