@@ -35,3 +35,26 @@ zokrates compilation:
 ```
 curl -X POST http://localhost:8080/zokrates/compile
 ```
+
+zokrates setup:
+```
+curl -X POST http://localhost:8080/zokrates/setup
+```
+
+zokrates compute-witness:
+```
+curl -X POST -H "Content-Type: application/json" -d '["337", "113569"]' http://localhost:8080/zokrates/compute-witness
+```
+
+zokrates generate-proof:
+```
+curl -X POST http://localhost:8080/zokrates/generate-proof
+```
+
+zokrates verify:
+```
+curl -X POST http://localhost:8080/zokrates/verify-proof
+```
+
+
+
