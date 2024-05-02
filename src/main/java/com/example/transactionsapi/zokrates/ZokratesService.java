@@ -54,11 +54,14 @@ public class ZokratesService {
         }
     }
 
-    // Method to generate proof
-    public String generateProof(String[] inputs) {
-        // Use Zokrates command line or API to generate proof
-        // Replace this with your implementation
-        return "proof";
+    public void setup() {
+        try {
+            // Execute the command inside the Docker container
+            String[] dockerCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates setup"};
+            executeDockerCommand(dockerCommand);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void computeWitness(String[] inputs) {
@@ -73,12 +76,25 @@ public class ZokratesService {
             e.printStackTrace();
         }
     }
+    // Method to generate proof
+    public void generateProof() {
+        try {
+            // Execute the command inside the Docker container
+            String[] dockerCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates generate-proof"};
+            executeDockerCommand(dockerCommand);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
-    // Method to verify proof
-    public boolean verifyProof(String proof, String[] publicInputs) {
-        // Use Zokrates command line or API to verify proof
-        // Replace this with your implementation
-        return true;
+    public void verifyProof() {
+        try {
+            // Execute the command inside the Docker container
+            String[] dockerCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates verify"};
+            executeDockerCommand(dockerCommand);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     // helper functions
