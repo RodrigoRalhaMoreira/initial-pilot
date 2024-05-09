@@ -43,11 +43,11 @@ public class ZokratesService {
     public void compileCircuit(String circuitFilePath) {
         try {
             // Copy the Zokrates file into the running Docker container
-            String[] copyCommand = {"docker", "cp", circuitFilePath, "zokrates_container:/home/zokrates/example.zok"};
+            String[] copyCommand = {"docker", "cp", circuitFilePath, "zokrates_container:/home/zokrates/signature_proof.zok"};
             executeDockerCommand(copyCommand);
     
             // Execute the Zokrates compile command inside the Docker container
-            String[] compileCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates compile -i example.zok"};
+            String[] compileCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates compile -i signature_proof.zok"};
             executeDockerCommand(compileCommand);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

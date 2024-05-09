@@ -1,0 +1,11 @@
+import "hashes/sha256/512bitPacked" as sha256packed;
+
+def main(private field a, private field b, private field c, private field d, field h0, field h1) {
+  field[2] h = sha256packed([a, b, c, d]);
+  assert(h[0] == h0);
+  assert(h[1] == h1);
+  return;
+}
+// Input(public key): '549282910E81313D0a0975EEdDe05B23d5f6Ae08' 
+// assert(h[0] == 298368320004409627714642055275224819856)
+// assert(h[1] == 25301665991035423237309602852572310550)

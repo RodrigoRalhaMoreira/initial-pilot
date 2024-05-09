@@ -22,7 +22,7 @@ public class ZokratesController {
     @PostMapping("/compile")
     public ResponseEntity<String> compileCircuit() {
         try {
-            String circuitFilePath = "/home/moreira/Desktop/faculdade/TESE/initial-pilot/transactionsapi/src/main/java/com/example/transactionsapi/zokrates/example.zok";
+            String circuitFilePath = "/home/moreira/Desktop/faculdade/TESE/initial-pilot/transactionsapi/src/main/java/com/example/transactionsapi/zokrates/signature_proof.zok";
             zokratesService.compileCircuit(circuitFilePath);
             return ResponseEntity.ok("Zokrates compilation successful");
         } catch (Exception e) {
@@ -36,7 +36,7 @@ public class ZokratesController {
             zokratesService.setup();
             return ResponseEntity.ok("Zokrates compilation successful");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error computing witness: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error doing setup: " + e.getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ public class ZokratesController {
             zokratesService.generateProof();
             return ResponseEntity.ok("Zokrates compilation successful");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error computing witness: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating proof: " + e.getMessage());
         }
     }
 
@@ -67,7 +67,7 @@ public class ZokratesController {
             zokratesService.verifyProof();
             return ResponseEntity.ok("Zokrates compilation successful");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error computing witness: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error verifying proof: " + e.getMessage());
         }
     }
     

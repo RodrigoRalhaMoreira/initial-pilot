@@ -43,7 +43,7 @@ curl -X POST http://localhost:8080/zokrates/setup
 
 zokrates compute-witness:
 ```
-curl -X POST -H "Content-Type: application/json" -d '["337", "113569"]' http://localhost:8080/zokrates/compute-witness
+curl -X POST -H "Content-Type: application/json" -d '["0", "0", "1418887825", "19279996909834594640490546019708612104", "298368320004409627714642055275224819856", "25301665991035423237309602852572310550"]' http://localhost:8080/zokrates/compute-witness
 ```
 
 zokrates generate-proof:
