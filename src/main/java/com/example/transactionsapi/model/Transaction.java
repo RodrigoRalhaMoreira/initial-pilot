@@ -8,8 +8,11 @@ public class Transaction {
     private double amount;
     private String bytecode;
     private Address sender;
+    private Address receiver;
     private Contract smartContract;
     private String smartContractParams;
+    private boolean isPrivate;
+    private String[] zkProofParams;
 
     public Transaction() {
     }
@@ -21,6 +24,7 @@ public class Transaction {
         this.sender = null;
         this.smartContract = null;
         this.smartContractParams = "";
+        this.isPrivate = false;
     }
 
     public Transaction(String type, double amount, String bytecode) {
@@ -30,15 +34,22 @@ public class Transaction {
         this.sender = null;
         this.smartContract = null;
         this.smartContractParams = "";
+        this.isPrivate = false;
     }
 
-    public Transaction(String type, double amount, String bytecode, String smartContractParams, Address sender) {
+    public Transaction(String type, double amount, String bytecode, String smartContractParams, Address sender, Address receiver) {
+        this(type, amount, bytecode, smartContractParams, sender, receiver, false);
+    }
+
+    public Transaction(String type, double amount, String bytecode, String smartContractParams, Address sender, Address receiver, boolean isPrivate) {
         this.type = type;
         this.amount = amount;
         this.bytecode = bytecode;
         this.sender = sender;
+        this.receiver = receiver;
         this.smartContract = null;
         this.smartContractParams = smartContractParams;
+        this.isPrivate = isPrivate;
     }
 
 
@@ -75,6 +86,14 @@ public class Transaction {
         this.sender = sender;
     }
 
+    public Address getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(Address receiver) {
+        this.receiver = receiver;
+    }
+
     public Contract getSmartContract() {
         return smartContract;
     }
@@ -89,5 +108,17 @@ public class Transaction {
 
     public void setSmartContractParams(String smartContractParams) {
         this.smartContractParams = smartContractParams;
+    }
+
+    public boolean isPrivate() {
+        return this.isPrivate;
+    }
+
+    public void setIsPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
+
+    public String serialize() {
+        return String.format("Transaction: {type: %s, amount: %f, bytecode: %s, sender: %s, receiver: %s, smartContractParams: %s, isPrivate: %b}", this.type, this.amount, this.bytecode, this.sender, this.receiver, this.smartContractParams, this.isPrivate);
     }
 }

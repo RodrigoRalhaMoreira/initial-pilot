@@ -4,8 +4,11 @@ import hashlib
 public_address = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000549282910E81313D0a0975EEdDe05B23d5f6Ae08"
 
 x = bytes.fromhex(public_address)
+print(x)
 
 hash = hashlib.sha256(x)
+
+print(hash)
 hx = hash.hexdigest()
 print("hx: ", hx)
 
@@ -18,9 +21,6 @@ val2 = int.from_bytes(i2, "big")
 print(val1)
 print(val2)
 print()
-
-print(hex(val1))
-print(hex(val2))
 
 
 def split_and_convert(public_address):

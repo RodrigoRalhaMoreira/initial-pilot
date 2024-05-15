@@ -2,6 +2,7 @@ package com.example.transactionsapi.controller;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,7 @@ import org.web3j.utils.Numeric;
 import com.example.transactionsapi.client.TransactionService;
 import com.example.transactionsapi.contracts.HelloWorld;
 import com.example.transactionsapi.model.Transaction;
+import com.example.transactionsapi.utils.PublicAddressUtil;
 
 
 @RestController
@@ -47,14 +49,16 @@ public class TransactionController {
     private final Credentials credentials;
     private final StaticGasProvider gasProvider;
     private final TransactionService transactionService;
+    private final ZokratesController zokratesController;
 
 
     @Autowired
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, ZokratesController zokratesController) {
         this.web3j = Web3j.build(new HttpService());
         this.credentials = Credentials.create(privateKey);  
         this.gasProvider = new StaticGasProvider(GAS_PRICE, GAS_LIMIT);  
         this.transactionService = transactionService;
+        this.zokratesController = zokratesController;
     }
 
     @PostMapping
@@ -102,6 +106,8 @@ public class TransactionController {
     //associate the proof with the transaction amount
     //how to execute the proof in the context of this smart contracts
     // a -> tx -> b (signed with a digital signature without revealing the public key, colocar prova com zkSNARK colocar dentro da prova validade signature ) get_validity_of_identifier (a partir da chave publica consigo dizer se a assinatura é valida ou não) 
+
+    // 
     @PostMapping("/contract-execution")
     public ResponseEntity<String> executeContract(@RequestBody Transaction transaction) {
         
@@ -186,24 +192,60 @@ public class TransactionController {
         }        
     }
 
+
+    @PostMapping("/private-transaction")
+    public ResponseEntity<String> privateTransaction(@RequestBody Transaction transaction) throws NoSuchAlgorithmException {
+        
+        if (!validateTransactionFields(transaction)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid transaction fields.");
+        }
+        
+        processTransaction(transaction.getSender().getValue());
+        processTransaction(transaction.getReceiver().getValue());
+
+        return ResponseEntity.ok("Private transaction executed successfully. " + transaction.serialize());
+    }
+
+    // helpers
+
     private boolean validateTransactionFields(Transaction transaction) {
-        if (transaction.getType() == null || transaction.getType().isEmpty()) {
-            return false;
-        }
-    
-        if (transaction.getAmount() <= 0) {
-            return false;
-        }
-    
-        if (transaction.getBytecode() == null || transaction.getBytecode().isEmpty()) {
-            return false;
-        }
-    
-        if (transaction.getSender() == null) {
-            return false;
-        }
-    
         return true;
+        // if (transaction.getType() == null || transaction.getType().isEmpty()) {
+        //     return false;
+        // }
+    
+        // if (transaction.getAmount() <= 0) {
+        //     return false;
+        // }
+    
+        // if (transaction.getBytecode() == null || transaction.getBytecode().isEmpty()) {
+        //     return false;
+        // }
+    
+        // if (transaction.getSender() == null) {
+        //     return false;
+        // }
+    
+        // return true;
+    }
+
+    private void processTransaction(String publicAddress) throws NoSuchAlgorithmException {
+        BigInteger[] parts = PublicAddressUtil.getHashParts(publicAddress);
+        BigInteger[] inputs = PublicAddressUtil.splitAndConvert(publicAddress);
+    
+        // zk-snark generation and hide of sender and receiver
+        String[] witnessInputs = new String[parts.length + inputs.length];
+    
+        for (int i = 0; i < parts.length; i++) {
+            witnessInputs[i] = parts[i].toString();
+        }
+        for (int i = 0; i < inputs.length; i++) {
+            witnessInputs[i + parts.length] = inputs[i].toString();
+        }
+    
+        zokratesController.computeWitness(witnessInputs);
+        zokratesController.generateProof();
+        zokratesController.verifyProof();
     }
 
 }
