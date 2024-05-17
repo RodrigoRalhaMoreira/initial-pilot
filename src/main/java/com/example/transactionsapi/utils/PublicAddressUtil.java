@@ -17,10 +17,8 @@ public class PublicAddressUtil {
     public static BigInteger[] getHashParts(String publicAddress) throws NoSuchAlgorithmException {
         publicAddress = formatStringTo128Chars(publicAddress);
         byte[] x = hexStringToByteArray(publicAddress);
-        System.out.println(Arrays.toString(x));
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(x);
-        System.out.println("Hash: " + hash);
         byte[] i1 = Arrays.copyOfRange(hash, 0, 16);
         byte[] i2 = Arrays.copyOfRange(hash, 16, 32);
 

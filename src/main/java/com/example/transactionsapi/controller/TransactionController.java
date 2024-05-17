@@ -203,9 +203,11 @@ public class TransactionController {
         // transforming this into a single proof might loose flexibility at the end.
         // maybe having a proof for hiding sender and receiver and a proof for only hiding one of them
 
-        // commenting the zk-snarks for now
-        // processTransaction(transaction.getSender().getValue());
-        // processTransaction(transaction.getReceiver().getValue());
+        processTransaction(transaction.getSender().getValue());
+        System.out.println("----------------------------");
+        System.out.println();
+        System.out.println();
+        processTransaction(transaction.getReceiver().getValue());
 
         String encryptedAmount = PublicAddressUtil.hashTransactionAmount(transaction.getReceiver().getValue(), transaction.getAmount());
 
@@ -238,19 +240,22 @@ public class TransactionController {
     }
 
     private void processTransaction(String publicAddress) throws NoSuchAlgorithmException {
-        BigInteger[] parts = PublicAddressUtil.getHashParts(publicAddress);
-        BigInteger[] inputs = PublicAddressUtil.splitAndConvert(publicAddress);
-    
+        BigInteger[] splitHash = PublicAddressUtil.getHashParts(publicAddress);
+        BigInteger[] publicKeyParts = PublicAddressUtil.splitAndConvert(publicAddress);
+        
         // zk-snark generation and hide of sender and receiver
-        String[] witnessInputs = new String[parts.length + inputs.length];
-    
-        for (int i = 0; i < parts.length; i++) {
-            witnessInputs[i] = parts[i].toString();
+        String[] witnessInputs = new String[publicKeyParts.length + splitHash.length];
+        
+        for (int i = 0; i < publicKeyParts.length; i++) {
+            witnessInputs[i] = publicKeyParts[i].toString();
         }
-        for (int i = 0; i < inputs.length; i++) {
-            witnessInputs[i + parts.length] = inputs[i].toString();
+        for (int i = 0; i < splitHash.length; i++) {
+            witnessInputs[i+publicKeyParts.length] = splitHash[i].toString();
         }
-    
+        
+        for (int i = 0; i < witnessInputs.length; i++) {
+            System.out.println(witnessInputs[i]);
+        }
         zokratesController.computeWitness(witnessInputs);
         zokratesController.generateProof();
         zokratesController.verifyProof();
