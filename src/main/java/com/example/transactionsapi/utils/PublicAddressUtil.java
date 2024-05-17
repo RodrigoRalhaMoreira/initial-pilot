@@ -7,14 +7,6 @@ import java.util.Arrays;
 
 public class PublicAddressUtil {
 
-    public static String getHash(String publicAddress) throws NoSuchAlgorithmException {
-        byte[] x = new BigInteger(publicAddress, 16).toByteArray();
-
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] hash = md.digest(x);
-        return bytesToHex(hash);
-    }
-
     public static BigInteger[] getHashParts(String publicAddress) throws NoSuchAlgorithmException {
         publicAddress = formatStringTo128Chars(publicAddress);
         byte[] x = hexStringToByteArray(publicAddress);
@@ -42,19 +34,9 @@ public class PublicAddressUtil {
         return parts;
     }
 
-    private static String bytesToHex(byte[] hash) {
-        StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (int i = 0; i < hash.length; i++) {
-            String hex = Integer.toHexString(0xff & hash[i]);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
-
-    public static byte[] hexStringToByteArray(String s) {
+    // helpers
+    
+    private static byte[] hexStringToByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
