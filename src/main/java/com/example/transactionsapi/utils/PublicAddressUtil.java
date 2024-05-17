@@ -7,6 +7,10 @@ import java.util.Arrays;
 
 public class PublicAddressUtil {
 
+    /*
+     In Socrates we can only hold 128-bit values, and so our 256-bit hash is split into two parts.
+     */
+
     public static BigInteger[] getHashParts(String publicAddress) throws NoSuchAlgorithmException {
         publicAddress = formatStringTo128Chars(publicAddress);
         byte[] x = hexStringToByteArray(publicAddress);
@@ -23,6 +27,9 @@ public class PublicAddressUtil {
         return new BigInteger[]{val1, val2};
     }
 
+    /*
+     * For the input data, we split into four 128-bit values, and which gives us a data input of up to 512 bits. The values of the input will be a, b, c and d, and where d is the end part of the data buffer. With many other cryptosystems, we use a big-endian format, and where the last byte as the first byte of the data.
+     */
     public static BigInteger[] splitAndConvert(String publicAddress) {
         publicAddress = formatStringTo128Chars(publicAddress);
         BigInteger[] parts = new BigInteger[4];
@@ -35,7 +42,7 @@ public class PublicAddressUtil {
     }
 
     // helpers
-    
+
     private static byte[] hexStringToByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
@@ -46,6 +53,10 @@ public class PublicAddressUtil {
         return data;
     }
 
+    /**
+     * 128 hex characters * 4 bits/hex character = 528 bits.
+     * So we will have 4 128-bit values where the public key always stays within the last 2 values and the others are just 0.
+     */
     private static String formatStringTo128Chars(String publicAddress) {
         if (publicAddress.startsWith("0x")) {
             publicAddress = publicAddress.substring(2);
@@ -55,4 +66,6 @@ public class PublicAddressUtil {
         }
         return publicAddress;
     }
+
+    
 }

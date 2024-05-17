@@ -200,6 +200,8 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid transaction fields.");
         }
         
+        // transforming this into a single proof might loose flexibility at the end.
+        // maybe having a proof for hiding sender and receiver and a proof for only hiding one of them
         processTransaction(transaction.getSender().getValue());
         processTransaction(transaction.getReceiver().getValue());
 
