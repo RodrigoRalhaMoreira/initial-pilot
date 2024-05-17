@@ -47,7 +47,6 @@ public class PublicAddressUtil {
         byte[] key = (receiverPublicAddress).getBytes("UTF-8");
         MessageDigest sha = MessageDigest.getInstance("SHA-256");
         key = sha.digest(key);
-        key = Arrays.copyOf(key, 16); // use only first 128 bit
 
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
 
@@ -69,7 +68,6 @@ public class PublicAddressUtil {
         byte[] key = (receiverPublicAddress).getBytes("UTF-8");
         MessageDigest sha = MessageDigest.getInstance("SHA-256");
         key = sha.digest(key);
-        key = Arrays.copyOf(key, 16); // use only first 128 bit
     
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
     
