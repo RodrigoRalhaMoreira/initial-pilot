@@ -2,6 +2,7 @@ package com.example.transactionsapi.controller;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,7 @@ import org.web3j.utils.Numeric;
 import com.example.transactionsapi.client.TransactionService;
 import com.example.transactionsapi.contracts.HelloWorld;
 import com.example.transactionsapi.model.Transaction;
+import com.example.transactionsapi.utils.PublicAddressUtil;
 
 
 @RestController
@@ -47,14 +49,16 @@ public class TransactionController {
     private final Credentials credentials;
     private final StaticGasProvider gasProvider;
     private final TransactionService transactionService;
+    private final ZokratesController zokratesController;
 
 
     @Autowired
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, ZokratesController zokratesController) {
         this.web3j = Web3j.build(new HttpService());
         this.credentials = Credentials.create(privateKey);  
         this.gasProvider = new StaticGasProvider(GAS_PRICE, GAS_LIMIT);  
         this.transactionService = transactionService;
+        this.zokratesController = zokratesController;
     }
 
     @PostMapping
@@ -102,6 +106,8 @@ public class TransactionController {
     //associate the proof with the transaction amount
     //how to execute the proof in the context of this smart contracts
     // a -> tx -> b (signed with a digital signature without revealing the public key, colocar prova com zkSNARK colocar dentro da prova validade signature ) get_validity_of_identifier (a partir da chave publica consigo dizer se a assinatura é valida ou não) 
+
+    // 
     @PostMapping("/contract-execution")
     public ResponseEntity<String> executeContract(@RequestBody Transaction transaction) {
         
@@ -186,12 +192,34 @@ public class TransactionController {
         }        
     }
 
+
+    @PostMapping("/private-transaction")
+    public ResponseEntity<String> privateTransaction(@RequestBody Transaction transaction) throws Exception {
+        
+        // transforming this into a single proof might loose flexibility at the end.
+        // maybe having a proof for hiding sender and receiver and a proof for only hiding one of them
+
+        processTransaction(transaction.getSender().getValue());
+        System.out.println("----------------------------");
+        System.out.println();
+        System.out.println();
+        processTransaction(transaction.getReceiver().getValue());
+
+        String encryptedAmount = PublicAddressUtil.hashTransactionAmount(transaction.getReceiver().getValue(), transaction.getAmount());
+
+        transaction.setAmount(encryptedAmount);
+
+        return ResponseEntity.ok("Private transaction executed successfully. " + transaction.serialize());
+    }
+
+    // helpers
+
     private boolean validateTransactionFields(Transaction transaction) {
         if (transaction.getType() == null || transaction.getType().isEmpty()) {
             return false;
         }
     
-        if (transaction.getAmount() <= 0) {
+        if (Double.valueOf(transaction.getAmount()) <= 0.0) {
             return false;
         }
     
@@ -204,6 +232,28 @@ public class TransactionController {
         }
     
         return true;
+    }
+
+    private void processTransaction(String publicAddress) throws NoSuchAlgorithmException {
+        BigInteger[] splitHash = PublicAddressUtil.getHashParts(publicAddress);
+        BigInteger[] publicKeyParts = PublicAddressUtil.splitAndConvert(publicAddress);
+        
+        // zk-snark generation and hide of sender and receiver
+        String[] witnessInputs = new String[publicKeyParts.length + splitHash.length];
+        
+        for (int i = 0; i < publicKeyParts.length; i++) {
+            witnessInputs[i] = publicKeyParts[i].toString();
+        }
+        for (int i = 0; i < splitHash.length; i++) {
+            witnessInputs[i+publicKeyParts.length] = splitHash[i].toString();
+        }
+        
+        for (int i = 0; i < witnessInputs.length; i++) {
+            System.out.println(witnessInputs[i]);
+        }
+        zokratesController.computeWitness(witnessInputs);
+        zokratesController.generateProof();
+        zokratesController.verifyProof();
     }
 
 }

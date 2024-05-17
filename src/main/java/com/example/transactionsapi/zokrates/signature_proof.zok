@@ -1,11 +1,12 @@
 import "hashes/sha256/512bitPacked" as sha256packed;
 
-def main(private field a, private field b, private field c, private field d, field h0, field h1) {
-  field[2] h = sha256packed([a, b, c, d]);
-  assert(h[0] == h0);
-  assert(h[1] == h1);
+def main(private field publicKeyPart1, private field publicKeyPart2, private field publicKeyPart3, private field publicKeyPart4, field lowerHashPart, field upperHashPart) {
+  field[2] hashParts = sha256packed([publicKeyPart1, publicKeyPart2, publicKeyPart3, publicKeyPart4]);
+  assert(hashParts[0] == lowerHashPart);
+  assert(hashParts[1] == upperHashPart);
   return;
 }
-// Input(public key): '549282910E81313D0a0975EEdDe05B23d5f6Ae08' 
+
+// Input(0x549282910E81313D0a0975EEdDe05B23d5f6Ae08) -> represented by 4 publicKeyParts '0,0,1418887825,19279996909834594640490546019708612104' 
 // assert(h[0] == 298368320004409627714642055275224819856)
 // assert(h[1] == 25301665991035423237309602852572310550)
