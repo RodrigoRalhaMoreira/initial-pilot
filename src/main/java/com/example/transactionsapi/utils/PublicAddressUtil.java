@@ -5,6 +5,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 public class PublicAddressUtil {
 
     /*
@@ -39,6 +42,45 @@ public class PublicAddressUtil {
         }
 
         return parts;
+    }
+
+    public static String hashTransactionAmount(String receiverPublicAddress, String transactionAmount) throws Exception {
+        // Hash the receiver's public address to create a 256 bit key
+        byte[] key = (receiverPublicAddress).getBytes("UTF-8");
+        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        key = sha.digest(key);
+        key = Arrays.copyOf(key, 16); // use only first 128 bit
+
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+
+        // Encrypt the transaction amount
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+        byte[] encrypted = cipher.doFinal(transactionAmount.getBytes("UTF-8"));
+
+        // Convert to hexadecimal
+        StringBuilder sb = new StringBuilder();
+        for (byte b : encrypted) {
+            sb.append(String.format("%02X", b));
+        }
+
+        return sb.toString();
+    }
+    public static String decryptTransactionAmount(String receiverPublicAddress, String encryptedTransactionAmount) throws Exception {
+        // Hash the receiver's public address to create a 256 bit key
+        byte[] key = (receiverPublicAddress).getBytes("UTF-8");
+        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        key = sha.digest(key);
+        key = Arrays.copyOf(key, 16); // use only first 128 bit
+    
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+    
+        // Decrypt the transaction amount
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        byte[] decrypted = cipher.doFinal(hexStringToByteArray(encryptedTransactionAmount));
+    
+        return new String(decrypted, "UTF-8");
     }
 
     // helpers

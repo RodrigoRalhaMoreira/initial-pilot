@@ -194,7 +194,7 @@ public class TransactionController {
 
 
     @PostMapping("/private-transaction")
-    public ResponseEntity<String> privateTransaction(@RequestBody Transaction transaction) throws NoSuchAlgorithmException {
+    public ResponseEntity<String> privateTransaction(@RequestBody Transaction transaction) throws Exception {
         
         if (!validateTransactionFields(transaction)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid transaction fields.");
@@ -202,8 +202,14 @@ public class TransactionController {
         
         // transforming this into a single proof might loose flexibility at the end.
         // maybe having a proof for hiding sender and receiver and a proof for only hiding one of them
-        processTransaction(transaction.getSender().getValue());
-        processTransaction(transaction.getReceiver().getValue());
+
+        // commenting the zk-snarks for now
+        // processTransaction(transaction.getSender().getValue());
+        // processTransaction(transaction.getReceiver().getValue());
+
+        String encryptedAmount = PublicAddressUtil.hashTransactionAmount(transaction.getReceiver().getValue(), transaction.getAmount());
+
+        transaction.setAmount(encryptedAmount);
 
         return ResponseEntity.ok("Private transaction executed successfully. " + transaction.serialize());
     }

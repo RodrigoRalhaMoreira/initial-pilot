@@ -5,7 +5,7 @@ import org.web3j.tx.Contract;
 
 public class Transaction {
     private String type;
-    private double amount;
+    private String amount;
     private String bytecode;
     private Address sender;
     private Address receiver;
@@ -17,7 +17,7 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(String type, double amount) {
+    public Transaction(String type, String amount) {
         this.type = type;
         this.amount = amount;
         this.bytecode = "Default bytecode";
@@ -27,7 +27,7 @@ public class Transaction {
         this.isPrivate = false;
     }
 
-    public Transaction(String type, double amount, String bytecode) {
+    public Transaction(String type, String amount, String bytecode) {
         this.type = type;
         this.amount = amount;
         this.bytecode = bytecode;
@@ -37,11 +37,11 @@ public class Transaction {
         this.isPrivate = false;
     }
 
-    public Transaction(String type, double amount, String bytecode, String smartContractParams, Address sender, Address receiver) {
+    public Transaction(String type, String amount, String bytecode, String smartContractParams, Address sender, Address receiver) {
         this(type, amount, bytecode, smartContractParams, sender, receiver, false);
     }
 
-    public Transaction(String type, double amount, String bytecode, String smartContractParams, Address sender, Address receiver, boolean isPrivate) {
+    public Transaction(String type, String amount, String bytecode, String smartContractParams, Address sender, Address receiver, boolean isPrivate) {
         this.type = type;
         this.amount = amount;
         this.bytecode = bytecode;
@@ -62,11 +62,11 @@ public class Transaction {
         this.type = type;
     }
 
-    public double getAmount() {
+    public String getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(String amount) {
         this.amount = amount;
     }
 
@@ -119,6 +119,6 @@ public class Transaction {
     }
 
     public String serialize() {
-        return String.format("Transaction: {type: %s, amount: %f, bytecode: %s, sender: %s, receiver: %s, smartContractParams: %s, isPrivate: %b}", this.type, this.amount, this.bytecode, this.sender, this.receiver, this.smartContractParams, this.isPrivate);
+        return String.format("Transaction: {type: %s, amount: %s, bytecode: %s, sender: %s, receiver: %s, smartContractParams: %s, isPrivate: %b}", this.type, this.amount, this.bytecode, this.sender, this.receiver, this.smartContractParams, this.isPrivate);
     }
 }
