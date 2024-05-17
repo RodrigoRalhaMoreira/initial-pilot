@@ -196,10 +196,6 @@ public class TransactionController {
     @PostMapping("/private-transaction")
     public ResponseEntity<String> privateTransaction(@RequestBody Transaction transaction) throws Exception {
         
-        if (!validateTransactionFields(transaction)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid transaction fields.");
-        }
-        
         // transforming this into a single proof might loose flexibility at the end.
         // maybe having a proof for hiding sender and receiver and a proof for only hiding one of them
 
@@ -219,24 +215,23 @@ public class TransactionController {
     // helpers
 
     private boolean validateTransactionFields(Transaction transaction) {
+        if (transaction.getType() == null || transaction.getType().isEmpty()) {
+            return false;
+        }
+    
+        if (Double.valueOf(transaction.getAmount()) <= 0.0) {
+            return false;
+        }
+    
+        if (transaction.getBytecode() == null || transaction.getBytecode().isEmpty()) {
+            return false;
+        }
+    
+        if (transaction.getSender() == null) {
+            return false;
+        }
+    
         return true;
-        // if (transaction.getType() == null || transaction.getType().isEmpty()) {
-        //     return false;
-        // }
-    
-        // if (transaction.getAmount() <= 0) {
-        //     return false;
-        // }
-    
-        // if (transaction.getBytecode() == null || transaction.getBytecode().isEmpty()) {
-        //     return false;
-        // }
-    
-        // if (transaction.getSender() == null) {
-        //     return false;
-        // }
-    
-        // return true;
     }
 
     private void processTransaction(String publicAddress) throws NoSuchAlgorithmException {
