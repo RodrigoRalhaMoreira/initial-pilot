@@ -63,5 +63,11 @@ zokrates verify:
 curl -X POST http://localhost:8080/zokrates/verify-proof
 ```
 
+zokrates verify:
+```
+curl -X POST http://localhost:8080/zokrates/generate-and-verify-proof
+```
+
+
 
 
