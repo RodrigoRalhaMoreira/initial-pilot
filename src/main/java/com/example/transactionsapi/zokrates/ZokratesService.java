@@ -116,12 +116,18 @@ public class ZokratesService {
             byte[] provingKeyBytes = Files.readAllBytes(provingKeyPath);
             outputStream.write(provingKeyBytes);
 
-            // Clean up: Delete the copied files from the host
-            // Files.delete(proofPath);
-            // Files.delete(provingKeyPath);
+            
+            Files.delete(proofPath);
+            Files.delete(provingKeyPath);
+            // Delete the files from the Docker container
+            String[] deleteProofCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proof.json"};
+            String[] deleteProvingKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proving.key"};
+            executeDockerCommand(deleteProofCommand);
+            executeDockerCommand(deleteProvingKeyCommand);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("Proof and proving key generated successfully, and returned as byte array");
         return outputStream.toByteArray();
     }
 
@@ -135,8 +141,11 @@ public class ZokratesService {
         }
     }
 
-    public boolean verifyProof(byte[] zkpData) {
+    public boolean verifyProof(byte[] zkpData) throws IOException {
         // Assuming separateAndCreateFiles function handles file creation and checks
+        separateAndCreateFiles(zkpData);
+
+        System.out.println("WILL START PROOF VERIFICATION");
         boolean verified = false;
         try {
             // Copy both files to the Docker container
@@ -146,30 +155,26 @@ public class ZokratesService {
             executeDockerCommand(copyProvingKeyCommand);
     
             // Execute verification command in Docker container
-            String verifyCmd = "cd /home/zokrates && zokrates verify -p proof.json -v proving.key";
-            ProcessBuilder processBuilder = new ProcessBuilder("docker", "exec", "zokrates_container", "/bin/bash", "-c", verifyCmd);
-            Process process = processBuilder.start();
-            process.waitFor();
+            String[] dockerCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates verify"};
+            Process process = new ProcessBuilder(dockerCommand).start();
     
-            // Read the output from the command
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
-    
             while ((line = reader.readLine()) != null) {
-                if (line.contains("Proof verified successfully")) {
+                System.out.println(line);
+                if (line.contains("PASSED")) {
                     verified = true;
-                    break;
-                } else if (line.contains("Proof verification failed")) {
-                    verified = false;
-                    break;
                 }
             }
+        
+            int exitCode = process.waitFor();
+            System.out.println("Docker command execution " + (exitCode == 0 ? "successful" : "failed") + ". (Command: " + String.join(" ", dockerCommand) + ")");
     
             // Delete the files from the Docker container
-            String[] deleteProofCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proof.json"};
-            String[] deleteProvingKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proving.key"};
-            executeDockerCommand(deleteProofCommand);
-            executeDockerCommand(deleteProvingKeyCommand);
+            //String[] deleteProofCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proof.json"};
+            //String[] deleteProvingKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proving.key"};
+            //executeDockerCommand(deleteProofCommand);
+            //executeDockerCommand(deleteProvingKeyCommand);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -215,6 +220,7 @@ public class ZokratesService {
         Files.write(Paths.get("proof.json"), proofBytes);
         Files.write(Paths.get("proving.key"), provingKeyBytes);
         
+        System.out.println("Files proof.json and proving.key created successfully");
         // Now you can pass these files to Docker for verification
     }
 
