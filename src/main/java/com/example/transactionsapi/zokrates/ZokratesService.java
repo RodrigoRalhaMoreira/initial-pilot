@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 public class ZokratesService {
 
     private static final byte[] DELIMITER = "UNIQUE_DELIMITER_SEQUENCE".getBytes();
+    private static final byte[] DELIMITER2 = "UNIQUE_DELIMITER_SEQUENCE2".getBytes();
+
+    
 
     public ZokratesService() {
         startZokratesService();
@@ -103,8 +106,11 @@ public class ZokratesService {
             // Copy the proof and proving key files from the Docker container to the host
             String[] copyProofCommand = {"docker", "cp", "zokrates_container:/home/zokrates/proof.json", "."};
             String[] copyProvingKeyCommand = {"docker", "cp", "zokrates_container:/home/zokrates/proving.key", "."};
+            String[] copyVerificationKeyCommand = {"docker", "cp", "zokrates_container:/home/zokrates/verification.key", "."};
+            
             executeDockerCommand(copyProofCommand);
             executeDockerCommand(copyProvingKeyCommand);
+            executeDockerCommand(copyVerificationKeyCommand);
 
             // Read the proof file
             Path proofPath = Paths.get("proof.json");
@@ -115,15 +121,23 @@ public class ZokratesService {
             Path provingKeyPath = Paths.get("proving.key");
             byte[] provingKeyBytes = Files.readAllBytes(provingKeyPath);
             outputStream.write(provingKeyBytes);
-
+            outputStream.write(DELIMITER2);
+            // Read the verification key file
+            Path verificationKeyPath = Paths.get("verification.key");
+            byte[] verificationKeyBytes = Files.readAllBytes(verificationKeyPath);
+            outputStream.write(verificationKeyBytes);
             
             Files.delete(proofPath);
             Files.delete(provingKeyPath);
+            Files.delete(verificationKeyPath);
+
             // Delete the files from the Docker container
             String[] deleteProofCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proof.json"};
             String[] deleteProvingKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proving.key"};
+            String[] deleteVerificationKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/verification.key"};
             executeDockerCommand(deleteProofCommand);
             executeDockerCommand(deleteProvingKeyCommand);
+            executeDockerCommand(deleteVerificationKeyCommand);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -151,8 +165,11 @@ public class ZokratesService {
             // Copy both files to the Docker container
             String[] copyProofCommand = {"docker", "cp", "proof.json", "zokrates_container:/home/zokrates/"};
             String[] copyProvingKeyCommand = {"docker", "cp", "proving.key", "zokrates_container:/home/zokrates/"};
+            String[] copyVerificationKeyCommand = {"docker", "cp", "verification.key", "zokrates_container:/home/zokrates/"};
             executeDockerCommand(copyProofCommand);
             executeDockerCommand(copyProvingKeyCommand);
+            executeDockerCommand(copyVerificationKeyCommand);
+            
     
             // Execute verification command in Docker container
             String[] dockerCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "zokrates verify"};
@@ -204,24 +221,31 @@ public class ZokratesService {
     }
 
     public void separateAndCreateFiles(byte[] combinedData) throws IOException {
-        // Find the delimiter in the combinedData
-        int delimiterIndex = findDelimiterIndex(combinedData, DELIMITER);
-        if (delimiterIndex == -1) {
-            throw new IllegalArgumentException("Delimiter not found in the combined data");
+        // Find the indexes of the two delimiters in the combinedData
+        int delimiterIndex1 = findDelimiterIndex(combinedData, DELIMITER);
+        int delimiterIndex2 = findDelimiterIndex(combinedData, DELIMITER2);
+    
+        if (delimiterIndex1 == -1 || delimiterIndex2 == -1 || delimiterIndex1 >= delimiterIndex2) {
+            throw new IllegalArgumentException("Delimiters not found or in wrong order in the combined data");
         }
-
-        // Split the combinedData into proofBytes and provingKeyBytes
-        byte[] proofBytes = new byte[delimiterIndex];
-        System.arraycopy(combinedData, 0, proofBytes, 0, delimiterIndex);
-        byte[] provingKeyBytes = new byte[combinedData.length - delimiterIndex - DELIMITER.length];
-        System.arraycopy(combinedData, delimiterIndex + DELIMITER.length, provingKeyBytes, 0, provingKeyBytes.length);
-
+    
+        // Split the combinedData into proofBytes, provingKeyBytes, and additionalDataBytes
+        byte[] proofBytes = new byte[delimiterIndex1];
+        System.arraycopy(combinedData, 0, proofBytes, 0, delimiterIndex1);
+    
+        byte[] provingKeyBytes = new byte[delimiterIndex2 - delimiterIndex1 - DELIMITER.length];
+        System.arraycopy(combinedData, delimiterIndex1 + DELIMITER.length, provingKeyBytes, 0, provingKeyBytes.length);
+    
+        byte[] verificationKeyBytes = new byte[combinedData.length - delimiterIndex2 - DELIMITER2.length];
+        System.arraycopy(combinedData, delimiterIndex2 + DELIMITER2.length, verificationKeyBytes, 0, verificationKeyBytes.length);
+    
         // Write the separated bytes to their respective files
         Files.write(Paths.get("proof.json"), proofBytes);
         Files.write(Paths.get("proving.key"), provingKeyBytes);
-        
-        System.out.println("Files proof.json and proving.key created successfully");
-        // Now you can pass these files to Docker for verification
+        Files.write(Paths.get("verification.key"), verificationKeyBytes);
+    
+        System.out.println("Files proof.json, proving.key, and additionalData.txt created successfully");
+        // Now you can pass these files to Docker for verification or further processing
     }
 
     private int findDelimiterIndex(byte[] data, byte[] delimiter) {
