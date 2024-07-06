@@ -34,7 +34,7 @@ public class ZokratesController {
     public ResponseEntity<String> setup() {
         try {
             zokratesService.setup();
-            return ResponseEntity.ok("Zokrates compilation successful");
+            return ResponseEntity.ok("Zokrates setup successful");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error doing setup: " + e.getMessage());
         }
@@ -44,7 +44,7 @@ public class ZokratesController {
     public ResponseEntity<String> computeWitness(@RequestBody String[] inputs) {
         try {
             zokratesService.computeWitness(inputs);
-            return ResponseEntity.ok("Zokrates compilation successful");
+            return ResponseEntity.ok("Zokrates witness computation successful");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error computing witness: " + e.getMessage());
         }
@@ -54,7 +54,7 @@ public class ZokratesController {
     public ResponseEntity<String> generateProof() {
         try {
             zokratesService.generateProof();
-            return ResponseEntity.ok("Zokrates compilation successful");
+            return ResponseEntity.ok("Zokrates generation successful");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating proof: " + e.getMessage());
         }
@@ -68,6 +68,18 @@ public class ZokratesController {
             return ResponseEntity.ok("Zokrates compilation successful");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error verifying proof: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/generate-and-verify-proof")
+    public ResponseEntity<String> generateProofAdnVerify() {
+        try {
+            byte[] zpkData = zokratesService.generateProof();
+            boolean result = zokratesService.verifyProof(zpkData);
+            String message = result ? "Proof verified successfully" : "Proof verification failed";
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating proof: " + e.getMessage());
         }
     }
     
