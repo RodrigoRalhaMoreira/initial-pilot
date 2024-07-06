@@ -253,6 +253,9 @@ public class TransactionController {
         }
         zokratesController.computeWitness(witnessInputs);
         zokratesController.generateProof();
+        
+        
+
         zokratesController.verifyProof();
     }
 
