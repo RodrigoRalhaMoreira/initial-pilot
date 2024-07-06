@@ -1,9 +1,7 @@
 package com.example.transactionsapi.zokrates;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
@@ -138,35 +136,25 @@ public class ZokratesService {
     }
 
     public boolean verifyProof(byte[] zkpData) {
-        // check the type of the provingKey 
-        if (proof == null || provingKey == null) {
-            throw new IllegalArgumentException("Proof and provingKey cannot be null.");
-        }
+        // Assuming separateAndCreateFiles function handles file creation and checks
         boolean verified = false;
-        File proofFile = new File("proof.json");
-        File provingKeyFile = new File("proving.key");
-        try (BufferedWriter proofWriter = new BufferedWriter(new FileWriter(proofFile));
-             BufferedWriter provingKeyWriter = new BufferedWriter(new FileWriter(provingKeyFile))) {
-            // Write the proof to its file
-            proofWriter.write(proof.toString());
-            // Write the proving key to its file
-            provingKeyWriter.write(provingKey.toString());
-    
+        try {
             // Copy both files to the Docker container
             String[] copyProofCommand = {"docker", "cp", "proof.json", "zokrates_container:/home/zokrates/"};
             String[] copyProvingKeyCommand = {"docker", "cp", "proving.key", "zokrates_container:/home/zokrates/"};
             executeDockerCommand(copyProofCommand);
             executeDockerCommand(copyProvingKeyCommand);
     
+            // Execute verification command in Docker container
             String verifyCmd = "cd /home/zokrates && zokrates verify -p proof.json -v proving.key";
             ProcessBuilder processBuilder = new ProcessBuilder("docker", "exec", "zokrates_container", "/bin/bash", "-c", verifyCmd);
             Process process = processBuilder.start();
             process.waitFor();
-            
+    
             // Read the output from the command
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
-            
+    
             while ((line = reader.readLine()) != null) {
                 if (line.contains("Proof verified successfully")) {
                     verified = true;
@@ -176,23 +164,16 @@ public class ZokratesService {
                     break;
                 }
             }
-
+    
             // Delete the files from the Docker container
             String[] deleteProofCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proof.json"};
             String[] deleteProvingKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proving.key"};
             executeDockerCommand(deleteProofCommand);
-            executeDockerCommand(deleteProvingKeyCommand);        
-            return verified;
-
+            executeDockerCommand(deleteProvingKeyCommand);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-        } finally {
-            // Delete the files from the host machine
-            proofFile.delete();
-            provingKeyFile.delete();
         }
         return verified;
-
     }
 
     // helper functions
