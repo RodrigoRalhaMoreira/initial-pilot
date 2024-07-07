@@ -259,7 +259,7 @@ public class ZokratesService {
             }
             if (found) {
                 return i;
-            }
+            } 
         }
         return -1; // Delimiter not found
     }
