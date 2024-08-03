@@ -91,6 +91,8 @@ public class PublicAddressUtil {
         return data;
     }
 
+
+    // HyFlexChain address example: 0x013059301306072a8648ce3d020106082a8648ce3d0301070342000473e7366e6d854fdea1633eacc168fe2b4f4bc8b4174bc7fff33f0ef17faa319f81e64adc8fdbe9c75899e09b008579e30858bbd2da136ee58e7b2af65b81c79b
     /**
      * 128 hex characters * 4 bits/hex character = 528 bits.
      * So we will have 4 128-bit values where the public key always stays within the last 2 values and the others are just 0.
@@ -104,6 +106,7 @@ public class PublicAddressUtil {
         }
         return publicAddress;
     }
+
 
     
 }
