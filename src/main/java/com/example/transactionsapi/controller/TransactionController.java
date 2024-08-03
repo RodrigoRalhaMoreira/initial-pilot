@@ -199,11 +199,7 @@ public class TransactionController {
         // transforming this into a single proof might loose flexibility at the end.
         // maybe having a proof for hiding sender and receiver and a proof for only hiding one of them
 
-        processTransaction(transaction.getSender().getValue());
-        System.out.println("----------------------------");
-        System.out.println();
-        System.out.println();
-        processTransaction(transaction.getReceiver().getValue());
+        processTransaction(transaction.getSender().getValue(), transaction.getReceiver().getValue());
 
         String encryptedAmount = PublicAddressUtil.hashTransactionAmount(transaction.getReceiver().getValue(), transaction.getAmount());
 
@@ -234,9 +230,27 @@ public class TransactionController {
         return true;
     }
 
-    private void processTransaction(String publicAddress) throws NoSuchAlgorithmException {
-        BigInteger[] splitHash = PublicAddressUtil.getHashParts(publicAddress);
-        BigInteger[] publicKeyParts = PublicAddressUtil.splitAndConvert(publicAddress);
+    private void processTransaction(String senderPublicAddress, String receiverPublicAddress) throws NoSuchAlgorithmException {
+        
+        String[] senderInputs = prepareInputs(senderPublicAddress);
+        String[] receiverInputs = prepareInputs(receiverPublicAddress);
+        String[] witnessInputs = new String[senderInputs.length + receiverInputs.length];
+        
+        // Copy senderInputs into witnessInputs
+        System.arraycopy(senderInputs, 0, witnessInputs, 0, senderInputs.length);
+        
+        // Copy receiverInputs into witnessInputs
+        System.arraycopy(receiverInputs, 0, witnessInputs, senderInputs.length, receiverInputs.length);
+        
+        zokratesController.computeWitness(witnessInputs);
+        zokratesController.generateProof();
+        zokratesController.verifyProof();
+    }
+
+    // right now defaulting to hyflexchain addresses, flexibility for later
+    private String[] prepareInputs(String address) throws NoSuchAlgorithmException {
+        BigInteger[] splitHash = PublicAddressUtil.getHashParts(address, true);
+        BigInteger[] publicKeyParts = PublicAddressUtil.splitAndConvert(address, true);
         
         // zk-snark generation and hide of sender and receiver
         String[] witnessInputs = new String[publicKeyParts.length + splitHash.length];
@@ -251,12 +265,8 @@ public class TransactionController {
         for (int i = 0; i < witnessInputs.length; i++) {
             System.out.println(witnessInputs[i]);
         }
-        zokratesController.computeWitness(witnessInputs);
-        zokratesController.generateProof();
-        
-        
-
-        zokratesController.verifyProof();
+        return witnessInputs;
     }
+
 
 }

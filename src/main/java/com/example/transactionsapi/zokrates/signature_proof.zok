@@ -1,9 +1,13 @@
 import "hashes/sha256/512bitPacked" as sha256packed;
+// s_pkp1 -> s=sender, pkp1 = public key part 1
+def main(private field s_pkp1, private field s_pkp2, private field s_pkp3, private field s_pkp4, field s_lowerHashPart, field s_upperHashPart, private field r_pkp1, private field r_pkp2, private field r_pkp3, private field r_pkp4, field r_lowerHashPart, field r_upperHashPart) {
+  field[2] sender_hashParts = sha256packed([s_pkp1, s_pkp2, s_pkp3, s_pkp4]);
+  assert(hashParts[0] == s_lowerHashPart);
+  assert(hashParts[1] == s_upperHashPart);
 
-def main(private field publicKeyPart1, private field publicKeyPart2, private field publicKeyPart3, private field publicKeyPart4, field lowerHashPart, field upperHashPart) {
-  field[2] hashParts = sha256packed([publicKeyPart1, publicKeyPart2, publicKeyPart3, publicKeyPart4]);
-  assert(hashParts[0] == lowerHashPart);
-  assert(hashParts[1] == upperHashPart);
+  field[2] receiver_hashParts = sha256packed([r_pkp1, r_pkp2, r_pkp3, r_pkp4]);
+  assert(hashParts[0] == r_lowerHashPart);
+  assert(hashParts[1] == r_upperHashPart);
   return;
 }
 
