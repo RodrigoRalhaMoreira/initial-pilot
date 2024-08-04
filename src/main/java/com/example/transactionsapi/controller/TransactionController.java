@@ -118,7 +118,7 @@ public class TransactionController {
         try {
             // Get the next available nonce
             EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
-                transaction.getSender().getValue(),
+                transaction.getSender(),
                 DefaultBlockParameterName.LATEST
             ).sendAsync().get();
         
@@ -195,13 +195,11 @@ public class TransactionController {
 
     @PostMapping("/private-transaction")
     public ResponseEntity<String> privateTransaction(@RequestBody Transaction transaction) throws Exception {
-        
-        // transforming this into a single proof might loose flexibility at the end.
-        // maybe having a proof for hiding sender and receiver and a proof for only hiding one of them
 
-        processTransaction(transaction.getSender().getValue(), transaction.getReceiver().getValue());
 
-        String encryptedAmount = PublicAddressUtil.hashTransactionAmount(transaction.getReceiver().getValue(), transaction.getAmount());
+        processTransaction(transaction.getSender(), transaction.getReceiver());
+
+        String encryptedAmount = PublicAddressUtil.hashTransactionAmount(transaction.getReceiver(), transaction.getAmount());
 
         transaction.setAmount(encryptedAmount);
 
@@ -249,8 +247,8 @@ public class TransactionController {
 
     // right now defaulting to hyflexchain addresses, flexibility for later
     private String[] prepareInputs(String address) throws NoSuchAlgorithmException {
-        BigInteger[] splitHash = PublicAddressUtil.getHashParts(address, true);
-        BigInteger[] publicKeyParts = PublicAddressUtil.splitAndConvert(address, true);
+        BigInteger[] splitHash = PublicAddressUtil.getHashParts(address);
+        BigInteger[] publicKeyParts = PublicAddressUtil.splitAndConvert(address);
         
         // zk-snark generation and hide of sender and receiver
         String[] witnessInputs = new String[publicKeyParts.length + splitHash.length];

@@ -1,14 +1,13 @@
 package com.example.transactionsapi.model;
 
-import org.web3j.abi.datatypes.Address;
 import org.web3j.tx.Contract;
 
 public class Transaction {
     private String type;
     private String amount;
     private String bytecode;
-    private Address sender;
-    private Address receiver;
+    private String sender;
+    private String receiver;
     private Contract smartContract;
     private String smartContractParams;
     private boolean isPrivate;
@@ -37,11 +36,11 @@ public class Transaction {
         this.isPrivate = false;
     }
 
-    public Transaction(String type, String amount, String bytecode, String smartContractParams, Address sender, Address receiver) {
+    public Transaction(String type, String amount, String bytecode, String smartContractParams, String sender, String receiver) {
         this(type, amount, bytecode, smartContractParams, sender, receiver, false);
     }
 
-    public Transaction(String type, String amount, String bytecode, String smartContractParams, Address sender, Address receiver, boolean isPrivate) {
+    public Transaction(String type, String amount, String bytecode, String smartContractParams, String sender, String receiver, boolean isPrivate) {
         this.type = type;
         this.amount = amount;
         this.bytecode = bytecode;
@@ -78,19 +77,19 @@ public class Transaction {
         this.bytecode = bytecode;
     }
 
-    public Address getSender() {
+    public String getSender() {
         return sender;
     }
 
-    public void setSender(Address sender) {
+    public void setSender(String sender) {
         this.sender = sender;
     }
 
-    public Address getReceiver() {
+    public String getReceiver() {
         return receiver;
     }
 
-    public void setReceiver(Address receiver) {
+    public void setReceiver(String receiver) {
         this.receiver = receiver;
     }
 

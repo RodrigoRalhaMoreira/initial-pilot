@@ -130,14 +130,6 @@ public class ZokratesService {
             Files.delete(proofPath);
             Files.delete(provingKeyPath);
             Files.delete(verificationKeyPath);
-
-            // Delete the files from the Docker container
-            String[] deleteProofCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proof.json"};
-            String[] deleteProvingKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/proving.key"};
-            String[] deleteVerificationKeyCommand = {"docker", "exec", "zokrates_container", "/bin/bash", "-c", "rm /home/zokrates/verification.key"};
-            executeDockerCommand(deleteProofCommand);
-            executeDockerCommand(deleteProvingKeyCommand);
-            executeDockerCommand(deleteVerificationKeyCommand);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
