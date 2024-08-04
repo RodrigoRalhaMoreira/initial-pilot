@@ -97,17 +97,7 @@ public class TransactionController {
         }
     }
 
-    // what about the receiver of the transaction?
-    // client deploys smart contract and sends to server endpoint
-    // client install smart contract
-    // execute this operation and verify using the smart contract, don't accept the transaction if the age of the user is less than 18 (example)
-
-    //next step
-    //associate the proof with the transaction amount
-    //how to execute the proof in the context of this smart contracts
-    // a -> tx -> b (signed with a digital signature without revealing the public key, colocar prova com zkSNARK colocar dentro da prova validade signature ) get_validity_of_identifier (a partir da chave publica consigo dizer se a assinatura é valida ou não) 
-
-    // 
+ 
     @PostMapping("/contract-execution")
     public ResponseEntity<String> executeContract(@RequestBody Transaction transaction) {
         
@@ -200,7 +190,6 @@ public class TransactionController {
         processTransaction(transaction.getSender(), transaction.getReceiver());
 
         String encryptedAmount = PublicAddressUtil.hashTransactionAmount(transaction.getReceiver(), transaction.getAmount());
-
         transaction.setAmount(encryptedAmount);
 
         return ResponseEntity.ok("Private transaction executed successfully. " + transaction.serialize());
